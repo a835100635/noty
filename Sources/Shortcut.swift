@@ -24,7 +24,7 @@ struct Shortcut: Equatable, Codable {
 
     static func keyName(_ code: UInt32) -> String {
         switch Int(code) {
-        case kVK_Space: return "Space"
+        case kVK_Space: return "空格"
         case kVK_Return: return "↩"
         case kVK_Tab: return "⇥"
         case kVK_Escape: return "esc"

@@ -21,7 +21,7 @@ enum Settings {
 
     /// Body text size inside a note.
     static let fontSizes: [(name: String, size: Double)] = [
-        ("Small", 12), ("Medium", 13.5), ("Large", 15.5), ("Extra Large", 18)
+        ("小", 12), ("中", 13.5), ("大", 15.5), ("特大", 18)
     ]
 
     static let fontRange: ClosedRange<Double> = 10...30
@@ -119,7 +119,7 @@ enum Settings {
     /// How far from the screen edge the deck notices the pointer. A wider strip
     /// is easier to hit; a narrower one stays further out of the way.
     static let edgeWidths: [(name: String, width: Double)] = [
-        ("Narrow", 8), ("Standard", 14), ("Wide", 28), ("Very wide", 44)
+        ("窄", 8), ("标准", 14), ("宽", 28), ("很宽", 44)
     ]
 
     static var edgeWidth: Double {
