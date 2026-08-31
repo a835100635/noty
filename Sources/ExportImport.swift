@@ -43,7 +43,7 @@ enum Transfer {
 
     static func export(_ format: Format, notes: [Note]) {
         guard !notes.isEmpty else {
-            alert("Nothing to export", "There are no notes yet.")
+            alert("没有可导出的内容", "目前还没有笔记。")
             return
         }
         NSApp.activate()
@@ -61,8 +61,8 @@ enum Transfer {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
-        panel.prompt = "Export Here"
-        panel.message = "Choose a folder for \(notes.count) \(ext.uppercased()) file\(notes.count == 1 ? "" : "s")."
+        panel.prompt = "导出到此处"
+        panel.message = "请选择用于保存 \(notes.count) 个 \(ext.uppercased()) 文件的文件夹。"
         guard panel.runModal() == .OK, let dir = panel.url else { return }
 
         var used = Set<String>()
@@ -84,7 +84,7 @@ enum Transfer {
         }
         reveal(dir)
         if written < notes.count {
-            alert("Export incomplete", "Wrote \(written) of \(notes.count) notes. See Console for details.")
+            alert("导出未完成", "已写入 \(written)/\(notes.count) 条笔记。详情请查看控制台。")
         }
     }
 
@@ -123,7 +123,7 @@ enum Transfer {
             try enc.encode(archive).write(to: url, options: .atomic)
             reveal(url)
         } catch {
-            alert("Export failed", error.localizedDescription)
+            alert("导出失败", error.localizedDescription)
         }
     }
 
@@ -150,7 +150,7 @@ enum Transfer {
         if let sticky = UTType(filenameExtension: "stickies") { types.append(sticky) }
         panel.allowedContentTypes = types
         panel.allowsOtherFileTypes = true
-        panel.message = "Choose a .stickies archive, or Markdown / text files."
+        panel.message = "请选择 .stickies 归档文件，或 Markdown / 文本文件。"
         guard panel.runModal() == .OK else { return }
 
         var incoming: [Note] = []
@@ -181,10 +181,10 @@ enum Transfer {
 
         let added = NoteStore.shared.ingest(incoming)
         if failed.isEmpty {
-            alert("Import complete", "Added \(added) note\(added == 1 ? "" : "s").")
+            alert("导入完成", "已添加 \(added) 条笔记。")
         } else {
-            alert("Import finished with problems",
-                  "Added \(added) note\(added == 1 ? "" : "s"). Could not read: \(failed.joined(separator: ", "))")
+            alert("导入完成，但存在问题",
+                  "已添加 \(added) 条笔记。无法读取：\(failed.joined(separator: "、"))")
         }
     }
 
@@ -204,7 +204,7 @@ enum Transfer {
             try s.write(to: url, atomically: true, encoding: .utf8)
             reveal(url)
         } catch {
-            alert("Export failed", error.localizedDescription)
+            alert("导出失败", error.localizedDescription)
         }
     }
 

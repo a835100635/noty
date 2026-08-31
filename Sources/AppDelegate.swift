@@ -99,14 +99,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let a = NSAlert()
         a.messageText = "Noty"
         a.informativeText = """
-        Sticky notes docked to the edge of your screen.
+        停靠在屏幕边缘的便签。
 
-        ⌥⌘N  new note      ⌥⌘A  all notes      ⌥⌘L  archive
-        In a note — Esc closes, ⌘F finds, ⌘. cycles colour, ⌘⌫ deletes.
+        ⌥⌘N  新建笔记      ⌥⌘A  所有笔记      ⌥⌘L  归档
+        在笔记中：Esc 关闭，⌘F 查找，⌘. 切换颜色，⌘⌫ 删除。
 
-        Notes are stored locally in an SQLite database; bodies are encrypted \
-        with AES-GCM. Your notes never leave this Mac — the only network request \
-        the app makes is the update check, which you can switch off.
+        笔记保存在本地 SQLite 数据库中；正文使用 AES-GCM 加密。你的笔记不会离开这台 Mac，
+        应用唯一的网络请求是检查更新（可以关闭）。
         """
         a.runModal()
     }
@@ -122,27 +121,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "About Noty", action: #selector(showAbout), keyEquivalent: "")
-        appMenu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        appMenu.addItem(withTitle: "关于 Noty", action: #selector(showAbout), keyEquivalent: "")
+        appMenu.addItem(withTitle: "检查更新…", action: #selector(checkForUpdates), keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "New Note", action: #selector(newNote), keyEquivalent: "n")
-        appMenu.addItem(withTitle: "All Notes", action: #selector(openAllNotes), keyEquivalent: "a")
-        appMenu.addItem(withTitle: "Archive", action: #selector(openArchive), keyEquivalent: "l")
+        appMenu.addItem(withTitle: "新建笔记", action: #selector(newNote), keyEquivalent: "n")
+        appMenu.addItem(withTitle: "所有笔记", action: #selector(openAllNotes), keyEquivalent: "a")
+        appMenu.addItem(withTitle: "归档", action: #selector(openArchive), keyEquivalent: "l")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        appMenu.addItem(withTitle: "设置…", action: #selector(openSettings), keyEquivalent: ",")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Import…", action: #selector(importStickies), keyEquivalent: "i")
+        appMenu.addItem(withTitle: "导入…", action: #selector(importStickies), keyEquivalent: "i")
         appMenu.addItem(.separator())
-        let bigger = appMenu.addItem(withTitle: "Bigger Text", action: #selector(biggerText), keyEquivalent: "+")
+        let bigger = appMenu.addItem(withTitle: "放大文字", action: #selector(biggerText), keyEquivalent: "+")
         bigger.keyEquivalentModifierMask = [.control]
-        let smaller = appMenu.addItem(withTitle: "Smaller Text", action: #selector(smallerText), keyEquivalent: "-")
+        let smaller = appMenu.addItem(withTitle: "缩小文字", action: #selector(smallerText), keyEquivalent: "-")
         smaller.keyEquivalentModifierMask = [.control]
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Hide Noty", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        appMenu.addItem(withTitle: "Quit Noty", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: "隐藏 Noty", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        appMenu.addItem(withTitle: "退出 Noty", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         // The three global shortcuts already carry ⌥; mirror that here so the menu
         // items do not shadow ⌘N / ⌘A / ⌘L inside text fields.
-        for title in ["New Note", "All Notes", "Archive"] {
+        for title in ["新建笔记", "所有笔记", "归档"] {
             appMenu.item(withTitle: title)?.keyEquivalentModifierMask = [.command, .option]
         }
         for item in appMenu.items where item.action != nil
@@ -154,15 +153,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         main.addItem(appItem)
 
         let editItem = NSMenuItem()
-        let edit = NSMenu(title: "Edit")
-        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
-        let redo = edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "z")
+        let edit = NSMenu(title: "编辑")
+        edit.addItem(withTitle: "撤销", action: Selector(("undo:")), keyEquivalent: "z")
+        let redo = edit.addItem(withTitle: "重做", action: Selector(("redo:")), keyEquivalent: "z")
         redo.keyEquivalentModifierMask = [.command, .shift]
         edit.addItem(.separator())
-        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        edit.addItem(withTitle: "剪切", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "拷贝", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "粘贴", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "全选", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = edit
         main.addItem(editItem)
 

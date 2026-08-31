@@ -65,7 +65,7 @@ final class RecorderView: NSView {
         path.lineWidth = recording ? 2 : 1
         path.stroke()
 
-        let text = recording ? "Press keys…" : shortcut.display
+        let text = recording ? "请按下快捷键…" : shortcut.display
         let attrs: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 12, weight: recording ? .regular : .medium),
             .foregroundColor: recording ? NSColor.secondaryLabelColor : NSColor.labelColor,
@@ -177,7 +177,7 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 620),
                              styleMask: [.titled, .closable, .fullSizeContentView],
                              backing: .buffered, defer: false)
-            w.title = "Noty Settings"
+            w.title = "Noty 设置"
             w.titlebarAppearsTransparent = true
             w.isReleasedWhenClosed = false
             w.delegate = self
@@ -205,60 +205,60 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
-                group("Shortcuts", "Click a field and press the keys; ⌫ clears one.") {
-                    subhead("From any app")
-                    shortcutRow("New note", model.scNewNote, "new") { model.scNewNote = $0 }
-                    shortcutRow("All Notes", model.scAllNotes, "all") { model.scAllNotes = $0 }
-                    shortcutRow("Archive window", model.scArchive, "archive") { model.scArchive = $0 }
+                group("快捷键", "点击输入框后按下按键；⌫ 可清除一个按键。") {
+                    subhead("任意应用中")
+                    shortcutRow("新建笔记", model.scNewNote, "new") { model.scNewNote = $0 }
+                    shortcutRow("所有笔记", model.scAllNotes, "all") { model.scAllNotes = $0 }
+                    shortcutRow("归档窗口", model.scArchive, "archive") { model.scArchive = $0 }
 
-                    subhead("In an open note").padding(.top, 4)
-                    shortcutRow("Close", model.scClose, "close", bare: true) { model.scClose = $0 }
-                    shortcutRow("Archive this note", model.scArchiveNote, "archiveNote", bare: true) { model.scArchiveNote = $0 }
-                    shortcutRow("Delete", model.scDelete, "delete", bare: true) { model.scDelete = $0 }
-                    shortcutRow("Find in note", model.scFind, "find", bare: true) { model.scFind = $0 }
-                    shortcutRow("Toggle task", model.scTask, "task", bare: true) { model.scTask = $0 }
-                    shortcutRow("Pin", model.scPin, "pin", bare: true) { model.scPin = $0 }
-                    shortcutRow("Cycle colour", model.scColour, "colour", bare: true) { model.scColour = $0 }
-                    shortcutRow("Bigger text", model.scBigger, "bigger", bare: true) { model.scBigger = $0 }
-                    shortcutRow("Smaller text", model.scSmaller, "smaller", bare: true) { model.scSmaller = $0 }
+                    subhead("打开的笔记中").padding(.top, 4)
+                    shortcutRow("关闭", model.scClose, "close", bare: true) { model.scClose = $0 }
+                    shortcutRow("归档此笔记", model.scArchiveNote, "archiveNote", bare: true) { model.scArchiveNote = $0 }
+                    shortcutRow("删除", model.scDelete, "delete", bare: true) { model.scDelete = $0 }
+                    shortcutRow("查找笔记内容", model.scFind, "find", bare: true) { model.scFind = $0 }
+                    shortcutRow("切换任务", model.scTask, "task", bare: true) { model.scTask = $0 }
+                    shortcutRow("置顶", model.scPin, "pin", bare: true) { model.scPin = $0 }
+                    shortcutRow("切换颜色", model.scColour, "colour", bare: true) { model.scColour = $0 }
+                    shortcutRow("放大文字", model.scBigger, "bigger", bare: true) { model.scBigger = $0 }
+                    shortcutRow("缩小文字", model.scSmaller, "smaller", bare: true) { model.scSmaller = $0 }
 
-                    Text("These only fire while a note is open, so a key with no modifier is fine here.")
+                    Text("这些快捷键仅在笔记打开时生效，因此这里可以使用不带修饰键的按键。")
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 2)
                 }
 
-                group("Deck", "How the notes sit on the screen edge.") {
-                    row("Style") {
+                group("便签栏", "便签在屏幕边缘的显示方式。") {
+                    row("样式") {
                         Picker("", selection: $model.deckStyle) {
                             ForEach(DeckStyle.allCases, id: \.self) { Text($0.title).tag($0) }
                         }.labelsHidden().pickerStyle(.segmented).frame(width: 240)
                     }
-                    row("Edge") {
+                    row("位置") {
                         Picker("", selection: $model.onLeftEdge) {
-                            Text("Right").tag(false); Text("Left").tag(true)
+                            Text("右侧").tag(false); Text("左侧").tag(true)
                         }.labelsHidden().pickerStyle(.segmented).frame(width: 160)
                     }
-                    row("Detection area") {
+                    row("感应区域") {
                         VStack(alignment: .leading, spacing: 4) {
                             Picker("", selection: $model.edgeWidth) {
                                 ForEach(Settings.edgeWidths, id: \.width) { Text($0.name).tag($0.width) }
                             }.labelsHidden().pickerStyle(.segmented).frame(width: 300)
-                            Text("How far from the edge the pointer wakes the deck — \(Int(model.edgeWidth)) pt.")
+                            Text("指针距离边缘多远时唤醒便签栏 — \(Int(model.edgeWidth)) pt。")
                                 .font(.system(size: 11)).foregroundStyle(.secondary)
                         }
                     }
-                    Toggle("Show over full-screen apps", isOn: $model.overFullScreen)
-                    Toggle("Launch at login", isOn: $model.launchAtLogin)
+                    Toggle("在全屏应用上显示", isOn: $model.overFullScreen)
+                    Toggle("登录时启动", isOn: $model.launchAtLogin)
                 }
 
-                group("Notes", "Type and formatting inside a note.") {
-                    row("Font") {
+                group("笔记", "笔记中的输入和格式设置。") {
+                    row("字体") {
                         Picker("", selection: $model.fontName) {
                             ForEach(Ink.faces, id: \.body) { Text($0.name).tag($0.body) }
                         }.labelsHidden().frame(width: 200)
                     }
-                    row("Size") {
+                    row("大小") {
                         HStack(spacing: 10) {
                             Slider(value: $model.fontSize,
                                    in: Settings.fontRange.lowerBound...Settings.fontRange.upperBound,
@@ -269,8 +269,8 @@ struct SettingsView: View {
                         }
                     }
                     VStack(alignment: .leading, spacing: 3) {
-                        Toggle("Style Markdown as you type", isOn: $model.markdown)
-                        Text("**bold**, *italic*, `code`, ~~struck~~, # headings, > quotes. The text stays plain — only its appearance changes.")
+                        Toggle("输入时设置 Markdown 样式", isOn: $model.markdown)
+                        Text("**粗体**、*斜体*、`代码`、~~删除线~~、# 标题、> 引用。文本仍保持纯文本，仅改变显示效果。")
                             .font(.system(size: 11)).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -320,7 +320,7 @@ struct SettingsView: View {
             ShortcutField(shortcut: value, allowsBareKeys: bare, onChange: set)
                 .frame(width: 128, height: 26)
             if model.duplicate(of: value, ignoring: key) {
-                Label("Already used", systemImage: "exclamationmark.triangle.fill")
+                Label("快捷键已使用", systemImage: "exclamationmark.triangle.fill")
                     .font(.system(size: 11)).foregroundStyle(.orange)
             }
             Spacer(minLength: 0)

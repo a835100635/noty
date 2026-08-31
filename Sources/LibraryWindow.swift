@@ -3,8 +3,8 @@ import SwiftUI
 import Combine
 
 enum LibraryMode: String, CaseIterable, Identifiable {
-    case all = "All Notes"
-    case archive = "Archive"
+    case all = "所有笔记"
+    case archive = "归档"
     var id: String { rawValue }
 }
 
@@ -113,7 +113,7 @@ struct LibraryView: View {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
-                TextField("Search all notes", text: $model.query)
+                TextField("搜索所有笔记", text: $model.query)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                 if !model.query.isEmpty {
@@ -133,8 +133,8 @@ struct LibraryView: View {
                     Image(systemName: model.mode == .all ? "note.text" : "archivebox")
                         .font(.system(size: 22)).foregroundStyle(.quaternary)
                     Text(model.query.isEmpty
-                         ? (model.mode == .all ? "No notes yet" : "Nothing archived")
-                         : "No matches")
+                         ? (model.mode == .all ? "暂无笔记" : "暂无归档笔记")
+                         : "无匹配结果")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -149,7 +149,7 @@ struct LibraryView: View {
             Divider()
             HStack {
                 Button { NoteStore.shared.create() } label: {
-                    Label("New Note", systemImage: "plus")
+                    Label("新建笔记", systemImage: "plus")
                         .font(.system(size: 11.5))
                 }
                 .buttonStyle(.plain)
@@ -195,12 +195,12 @@ struct LibraryView: View {
         .padding(.vertical, 3)
         .contextMenu {
             if note.archived {
-                Button("Restore") { NoteStore.shared.setArchived(id: note.id, false) }
+                Button("恢复") { NoteStore.shared.setArchived(id: note.id, false) }
             } else {
-                Button("Archive") { NoteStore.shared.setArchived(id: note.id, true) }
+                Button("归档") { NoteStore.shared.setArchived(id: note.id, true) }
             }
             Divider()
-            Button("Delete") { NoteStore.shared.delete(id: note.id) }
+            Button("删除") { NoteStore.shared.delete(id: note.id) }
         }
     }
 
@@ -214,7 +214,7 @@ struct LibraryView: View {
         } else {
             VStack(spacing: 8) {
                 Image(systemName: "sidebar.right").font(.system(size: 26)).foregroundStyle(.quaternary)
-                Text("Select a note").font(.system(size: 13)).foregroundStyle(.secondary)
+                Text("请选择一条笔记").font(.system(size: 13)).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(nsColor: .textBackgroundColor))
@@ -241,7 +241,7 @@ struct LibraryDetail: View {
                         .padding(3).contentShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .help("Cycle colour · right-click to pick")
+                .help("切换颜色 · 右键选择")
                 .contextMenu {
                     ForEach(Array(NoteColor.all.enumerated()), id: \.offset) { idx, c in
                         Button(idx == note.color ? "✓ \(c.name)" : c.name) {
@@ -253,14 +253,14 @@ struct LibraryDetail: View {
                 Text(note.displayTitle)
                     .font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer()
-                Text("Edited \(Fmt.ago(note.modified))")
+                Text("编辑于 \(Fmt.ago(note.modified))")
                     .font(.system(size: 10.5)).foregroundStyle(.secondary)
 
                 if note.archived {
-                    Button("Restore") { NoteStore.shared.setArchived(id: note.id, false) }
+                    Button("恢复") { NoteStore.shared.setArchived(id: note.id, false) }
                         .controlSize(.small)
                 } else {
-                    Button("Archive") { NoteStore.shared.setArchived(id: note.id, true) }
+                    Button("归档") { NoteStore.shared.setArchived(id: note.id, true) }
                         .controlSize(.small)
                 }
                 Button {

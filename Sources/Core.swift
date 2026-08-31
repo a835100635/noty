@@ -56,14 +56,14 @@ struct NoteColor {
     /// Slightly deeper than a highlighter pastel, so a note reads as paper with
     /// colour in it rather than a tinted white rectangle.
     static let all: [NoteColor] = [
-        NoteColor(name: "Lemon",  paper: hex(0xFCE795), dash: hex(0xE0AD08), ink: hex(0x3A3008)),
-        NoteColor(name: "Peach",  paper: hex(0xFBCFA6), dash: hex(0xE2762A), ink: hex(0x422413)),
-        NoteColor(name: "Rose",   paper: hex(0xFAC4D1), dash: hex(0xDC4570), ink: hex(0x40161F)),
-        NoteColor(name: "Lilac",  paper: hex(0xD9C7FA), dash: hex(0x7C4DEE), ink: hex(0x2A1B44)),
-        NoteColor(name: "Sky",    paper: hex(0xBEDDFA), dash: hex(0x2280D6), ink: hex(0x13293A)),
-        NoteColor(name: "Mint",   paper: hex(0xB4E8D0), dash: hex(0x0E9B6E), ink: hex(0x0F2E23)),
-        NoteColor(name: "Sand",   paper: hex(0xE3D3B4), dash: hex(0xA37B3C), ink: hex(0x372C18)),
-        NoteColor(name: "Slate",  paper: hex(0xCBD6E2), dash: hex(0x4E6579), ink: hex(0x1A242E)),
+        NoteColor(name: "柠檬黄", paper: hex(0xFCE795), dash: hex(0xE0AD08), ink: hex(0x3A3008)),
+        NoteColor(name: "蜜桃色", paper: hex(0xFBCFA6), dash: hex(0xE2762A), ink: hex(0x422413)),
+        NoteColor(name: "玫瑰色", paper: hex(0xFAC4D1), dash: hex(0xDC4570), ink: hex(0x40161F)),
+        NoteColor(name: "丁香紫", paper: hex(0xD9C7FA), dash: hex(0x7C4DEE), ink: hex(0x2A1B44)),
+        NoteColor(name: "天空蓝", paper: hex(0xBEDDFA), dash: hex(0x2280D6), ink: hex(0x13293A)),
+        NoteColor(name: "薄荷绿", paper: hex(0xB4E8D0), dash: hex(0x0E9B6E), ink: hex(0x0F2E23)),
+        NoteColor(name: "沙色",   paper: hex(0xE3D3B4), dash: hex(0xA37B3C), ink: hex(0x372C18)),
+        NoteColor(name: "石板灰", paper: hex(0xCBD6E2), dash: hex(0x4E6579), ink: hex(0x1A242E)),
     ]
 
     /// A touch darker at the foot of the sheet, the way paper catches light.
@@ -171,7 +171,7 @@ struct Note: Identifiable, Hashable {
         return clean.count > 60 ? String(clean.prefix(60)) + "…" : clean
     }
 
-    var displayTitle: String { title.isEmpty ? "New note" : title }
+    var displayTitle: String { title.isEmpty ? "新建笔记" : title }
 
     /// Completed / total, or nil when the note holds no tasks.
     var taskProgress: (done: Int, total: Int)? {
@@ -257,7 +257,7 @@ enum Fmt {
     }()
 
     static func ago(_ d: Date) -> String {
-        if Date().timeIntervalSince(d) < 60 { return "just now" }
+        if Date().timeIntervalSince(d) < 60 { return "刚刚" }
         return relative.localizedString(for: d, relativeTo: Date())
     }
 }

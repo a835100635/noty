@@ -27,6 +27,9 @@ final class DeckModel: ObservableObject {
     @Published var showAll = false          // "+N more" opened into a scrolling list
     @Published var findQuery: String?       // nil = find bar hidden
     @Published var revealTick = 0           // bumped to restage the fan animation
+    /// Set only while switching notes from the top switcher, so the editor
+    /// stays in place instead of jumping to the new note's deck tab.
+    @Published var editorTopOverride: CGFloat?
 
     /// Owns the NSTextView of the open note so ⌘F can drive it.
     let bridge = EditorBridge()
@@ -196,6 +199,7 @@ final class DeckController: NSObject {
             removeKeyMonitor(); removeOutsideMonitor()
         }
         if new == .rest { stopIdleWatch() } else { startIdleWatch() }
+        if new.expandedID == nil { model.editorTopOverride = nil }
         if new == .rest { model.showAll = false; model.findQuery = nil }
     }
 
@@ -274,6 +278,17 @@ final class DeckController: NSObject {
     }
 
     func expand(_ id: String) {
+        model.editorTopOverride = nil
+        noteActivity()
+        manager?.deckDidActivate(self)
+        setState(.expanded(id))
+        NSApp.activate()
+        panel.makeKeyAndOrderFront(nil)
+    }
+
+    /// Switch from the top note list without moving the expanded editor.
+    func switchNote(_ id: String, preservingTop top: CGFloat) {
+        model.editorTopOverride = top
         noteActivity()
         manager?.deckDidActivate(self)
         setState(.expanded(id))
@@ -380,17 +395,17 @@ final class DeckController: NSObject {
 
     func showContextMenu(at event: NSEvent) {
         let menu = NSMenu()
-        menu.addItem(withTitle: "New Note", action: #selector(AppDelegate.newNote), keyEquivalent: "")
-        menu.addItem(withTitle: "All Notes", action: #selector(AppDelegate.openAllNotes), keyEquivalent: "")
-        menu.addItem(withTitle: "Archive", action: #selector(AppDelegate.openArchive), keyEquivalent: "")
+        menu.addItem(withTitle: "新建笔记", action: #selector(AppDelegate.newNote), keyEquivalent: "")
+        menu.addItem(withTitle: "所有笔记", action: #selector(AppDelegate.openAllNotes), keyEquivalent: "")
+        menu.addItem(withTitle: "归档", action: #selector(AppDelegate.openArchive), keyEquivalent: "")
         menu.addItem(.separator())
 
-        let overFS = NSMenuItem(title: "Show over full-screen apps",
+        let overFS = NSMenuItem(title: "在全屏应用上显示",
                                 action: #selector(AppDelegate.toggleOverFullScreen), keyEquivalent: "")
         overFS.state = Settings.showOverFullScreen ? .on : .off
         menu.addItem(overFS)
 
-        let styleItem = NSMenuItem(title: "Deck style", action: nil, keyEquivalent: "")
+        let styleItem = NSMenuItem(title: "便签栏样式", action: nil, keyEquivalent: "")
         let styleMenu = NSMenu()
         for s in DeckStyle.allCases {
             let it = NSMenuItem(title: s.title, action: #selector(AppDelegate.setDeckStyle(_:)), keyEquivalent: "")
@@ -401,7 +416,7 @@ final class DeckController: NSObject {
         styleItem.submenu = styleMenu
         menu.addItem(styleItem)
 
-        let fontItem = NSMenuItem(title: "Note font", action: nil, keyEquivalent: "")
+        let fontItem = NSMenuItem(title: "笔记字体", action: nil, keyEquivalent: "")
         let fontMenu = NSMenu()
         for f in Ink.faces {
             let it = NSMenuItem(title: f.name, action: #selector(AppDelegate.setNoteFont(_:)),
@@ -413,7 +428,7 @@ final class DeckController: NSObject {
         fontItem.submenu = fontMenu
         menu.addItem(fontItem)
 
-        let textItem = NSMenuItem(title: "Text size", action: nil, keyEquivalent: "")
+        let textItem = NSMenuItem(title: "文字大小", action: nil, keyEquivalent: "")
         let textMenu = NSMenu()
         for entry in Settings.fontSizes {
             let it = NSMenuItem(title: entry.name, action: #selector(AppDelegate.setFontSize(_:)),
@@ -425,44 +440,44 @@ final class DeckController: NSObject {
         textItem.submenu = textMenu
         menu.addItem(textItem)
 
-        let leftEdge = NSMenuItem(title: "Dock deck to left edge",
+        let leftEdge = NSMenuItem(title: "将便签栏停靠到左侧",
                                   action: #selector(AppDelegate.toggleDeckEdge), keyEquivalent: "")
         leftEdge.state = Settings.deckOnLeftEdge ? .on : .off
         menu.addItem(leftEdge)
 
-        let updates = NSMenuItem(title: "Check for Updates…",
+        let updates = NSMenuItem(title: "检查更新…",
                                  action: #selector(AppDelegate.checkForUpdates), keyEquivalent: "")
         menu.addItem(updates)
 
-        let autoUpdate = NSMenuItem(title: "Check automatically",
+        let autoUpdate = NSMenuItem(title: "自动检查更新",
                                     action: #selector(AppDelegate.toggleAutoUpdates), keyEquivalent: "")
         autoUpdate.state = Updater.shared.automaticallyChecks ? .on : .off
         autoUpdate.isEnabled = Updater.available
         menu.addItem(autoUpdate)
         menu.addItem(.separator())
 
-        let login = NSMenuItem(title: "Launch at login",
+        let login = NSMenuItem(title: "登录时启动",
                                action: #selector(AppDelegate.toggleLaunchAtLogin), keyEquivalent: "")
         login.state = Settings.launchAtLogin ? .on : .off
         menu.addItem(login)
         menu.addItem(.separator())
 
-        let exportItem = NSMenuItem(title: "Export", action: nil, keyEquivalent: "")
+        let exportItem = NSMenuItem(title: "导出", action: nil, keyEquivalent: "")
         let exportMenu = NSMenu()
-        exportMenu.addItem(withTitle: "Markdown (one file per note)…",
+        exportMenu.addItem(withTitle: "Markdown（每条笔记一个文件）…",
                            action: #selector(AppDelegate.exportMarkdown), keyEquivalent: "")
-        exportMenu.addItem(withTitle: "Plain text (one file per note)…",
+        exportMenu.addItem(withTitle: "纯文本（每条笔记一个文件）…",
                            action: #selector(AppDelegate.exportPlainText), keyEquivalent: "")
-        exportMenu.addItem(withTitle: "Single document…",
+        exportMenu.addItem(withTitle: "单个文档…",
                            action: #selector(AppDelegate.exportSingleFile), keyEquivalent: "")
-        exportMenu.addItem(withTitle: "Sticky archive (.stickies)…",
+        exportMenu.addItem(withTitle: "便签归档（.stickies）…",
                            action: #selector(AppDelegate.exportStickies), keyEquivalent: "")
         exportItem.submenu = exportMenu
         menu.addItem(exportItem)
-        menu.addItem(withTitle: "Import…", action: #selector(AppDelegate.importStickies), keyEquivalent: "")
+        menu.addItem(withTitle: "导入…", action: #selector(AppDelegate.importStickies), keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Settings…", action: #selector(AppDelegate.openSettings), keyEquivalent: "")
-        menu.addItem(withTitle: "Quit Noty", action: #selector(AppDelegate.quit), keyEquivalent: "")
+        menu.addItem(withTitle: "设置…", action: #selector(AppDelegate.openSettings), keyEquivalent: "")
+        menu.addItem(withTitle: "退出 Noty", action: #selector(AppDelegate.quit), keyEquivalent: "")
 
         for item in menu.items where item.action != nil {
             item.target = NSApp.delegate

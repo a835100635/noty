@@ -10,8 +10,8 @@ enum DeckStyle: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .tabs: return "Labelled tabs"
-        case .compact: return "Colour chips"
+        case .tabs: return "标签页"
+        case .compact: return "色块"
         }
     }
 }
@@ -112,6 +112,9 @@ enum DeckGeom {
     // Expanded — the note slides clear of the deck
     static let editorWidth: CGFloat = 460
     static let editorHeight: CGFloat = 380
+    static let switcherHeight: CGFloat = 34
+    static let switcherGap: CGFloat = 0
+    static let switcherDrop: CGFloat = 3
     /// The open note runs to the screen edge and covers its own tab, exactly as a
     /// pulled sticky would — so there is no gap between note and deck to tune.
     /// A little wider than the note so the lean has somewhere to go.

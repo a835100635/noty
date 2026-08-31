@@ -49,9 +49,17 @@ struct DeckRootView: View {
 
                 // Declared last so it covers the deck, flush to the screen edge.
                 if let id = deck.state.expandedID, let note = store.note(id: id) {
-                    NoteEditorView(note: note, deck: deck, controller: controller, onRight: onRight)
-                        .frame(width: DeckGeom.editorWidth, height: DeckGeom.editorHeight)
-                        .padding(.top, editorTop(lay, id: id))
+                    VStack(spacing: DeckGeom.switcherGap) {
+                        NoteSwitcher(selectedID: id, notes: store.active) {
+                            controller.switchNote($0, preservingTop: editorTop(lay, id: id))
+                        }
+                        .offset(y: DeckGeom.switcherDrop)
+                        NoteEditorView(note: note, deck: deck, controller: controller, onRight: onRight)
+                            .frame(width: DeckGeom.editorWidth, height: DeckGeom.editorHeight)
+                    }
+                        .frame(width: DeckGeom.editorWidth)
+                        .padding(.top, editorTop(lay, id: id)
+                                 - DeckGeom.switcherHeight - DeckGeom.switcherGap)
                         .transition(.modifier(
                             active: NotePull(hidden: true, onRight: onRight),
                             identity: NotePull(hidden: false, onRight: onRight)))
@@ -70,10 +78,109 @@ struct DeckRootView: View {
 
     /// Keep the open note level with its own tab, without letting it run off-screen.
     private func editorTop(_ lay: DeckLayout, id: String) -> CGFloat {
+        let minimum = DeckGeom.switcherHeight + DeckGeom.switcherGap + 10
+        let lowest = max(minimum, lay.panelHeight - DeckGeom.editorHeight - 10)
+        if let override = deck.editorTopOverride {
+            return min(max(minimum, override), lowest)
+        }
         let idx = visible.firstIndex { $0.id == id } ?? 0
         let ideal = lay.center(idx) - DeckGeom.editorHeight / 2
-        let lowest = max(10, lay.panelHeight - DeckGeom.editorHeight - 10)
-        return min(max(10, ideal), lowest)
+        return min(max(minimum, ideal), lowest)
+    }
+}
+
+// MARK: - Open-note switcher
+
+struct NoteSwitcher: View {
+    let selectedID: String
+    let notes: [Note]
+    let onSelect: (String) -> Void
+
+    private let overlap: CGFloat = 24
+    private let maximumTabWidth: CGFloat = 150
+    private var switcherWidth: CGFloat { DeckGeom.editorWidth * 0.9 }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .bottom, spacing: -overlap) {
+                    ForEach(Array(notes.enumerated()), id: \.element.id) { index, note in
+                        let slots = CGFloat(max(1, notes.count))
+                        let fittedWidth = (switcherWidth + overlap * (slots - 1)) / slots
+                        let width = min(maximumTabWidth, fittedWidth)
+                        NoteSwitcherTab(note: note, width: width,
+                                       height: DeckGeom.switcherHeight,
+                                       obscuredTrailingWidth: index == notes.count - 1 ? 0 : overlap) {
+                            onSelect(note.id)
+                        }
+                        .id(note.id)
+                        // Later tabs paint over the right edge of the preceding tab.
+                        .zIndex(Double(index))
+                    }
+                }
+                .frame(minWidth: switcherWidth, alignment: .center)
+            }
+            .frame(width: switcherWidth, height: DeckGeom.switcherHeight)
+            .onAppear {
+                proxy.scrollTo(selectedID, anchor: .center)
+            }
+        }
+    }
+}
+
+/// A folder-like tab whose top edge rises toward the right.
+private struct SlopedSwitcherTabShape: Shape {
+    var drop: CGFloat = 6
+    var cornerRadius: CGFloat = 15
+
+    func path(in rect: CGRect) -> Path {
+        let d = min(drop, rect.height * 0.25)
+        let r = min(cornerRadius, rect.width * 0.22, (rect.height - d) * 0.5)
+
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + d + r))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX + r, y: rect.minY + d),
+            control: CGPoint(x: rect.minX, y: rect.minY + d)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX - r, y: rect.minY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: rect.minY + r),
+            control: CGPoint(x: rect.maxX, y: rect.minY)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct NoteSwitcherTab: View {
+    let note: Note
+    let width: CGFloat
+    let height: CGFloat
+    let obscuredTrailingWidth: CGFloat
+    let action: () -> Void
+
+    private let tabShape = SlopedSwitcherTabShape()
+
+    var body: some View {
+        Button(action: action) {
+            Text(note.displayTitle)
+                .font(.system(size: 11, weight: .regular))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                // Constrain text to the part not covered by the following tab,
+                // so the visible title ends with an ellipsis instead of being clipped.
+                .frame(width: max(1, width - obscuredTrailingWidth - 16))
+                .padding(.trailing, obscuredTrailingWidth)
+                .foregroundStyle(note.palette.ink.opacity(0.72))
+            .frame(width: width, height: height)
+            .background(tabShape.fill(note.palette.paper))
+            .shadow(color: .black.opacity(0.2), radius: 4, y: 1)
+            .contentShape(tabShape)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -378,7 +485,7 @@ struct MoreTab: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(TabPressStyle())
-        .help("\(count) more note\(count == 1 ? "" : "s")")
+        .help("还有 \(count) 条笔记")
     }
 }
 
@@ -392,7 +499,7 @@ struct EmptyTab: View {
         Button(action: action) {
             ZStack(alignment: .top) {
                 edgeTabShape(onRight: onRight).fill(.ultraThinMaterial)
-                Text("NEW NOTE")
+                Text("新建笔记")
                     .font(Ink.tabFont)
                     .tracking(Ink.tabTracking)
                     .foregroundStyle(.secondary)
@@ -426,7 +533,7 @@ struct PlusButton: View {
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.15), value: hovering)
-        .help("New Note  ⌥⌘N")
+        .help("新建笔记  ⌥⌘N")
     }
 }
 
@@ -435,11 +542,11 @@ struct PlusButton: View {
 extension View {
     func noteContextMenu(_ note: Note) -> some View {
         contextMenu {
-            Button(note.pinned ? "Unpin" : "Pin") { NoteStore.shared.togglePin(id: note.id) }
-            Button("Archive") { NoteStore.shared.setArchived(id: note.id, true) }
-            Button("Cycle colour  ⌘.") { NoteStore.shared.cycleColor(id: note.id) }
+            Button(note.pinned ? "取消置顶" : "置顶") { NoteStore.shared.togglePin(id: note.id) }
+            Button("归档") { NoteStore.shared.setArchived(id: note.id, true) }
+            Button("切换颜色  ⌘.") { NoteStore.shared.cycleColor(id: note.id) }
             Divider()
-            Button("Delete") { NoteStore.shared.delete(id: note.id) }
+            Button("删除") { NoteStore.shared.delete(id: note.id) }
         }
     }
 }
