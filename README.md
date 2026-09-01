@@ -1,251 +1,222 @@
 # Noty
 
-Sticky notes that live at the edge of your screen. A native macOS app in Swift,
-SwiftUI and AppKit.
+停靠在屏幕边缘的便签应用。使用 Swift、SwiftUI 和 AppKit 开发的原生
+macOS 应用。
 
-No dock icon, no window to manage. Slide the pointer to the right edge and the
-deck fans out.
+没有 Dock 图标，也不需要管理窗口。将鼠标移到屏幕右边缘，便签卡组就会展开。
 
-**[noty-sepia.vercel.app](https://noty-sepia.vercel.app)** ·
-**[Download the latest DMG](https://github.com/aimen08/noty/releases/latest/download/Noty.dmg)**
+**[项目主页](https://noty-sepia.vercel.app)** ·
+**[下载最新 DMG](https://github.com/aimen08/noty/releases/latest/download/Noty.dmg)**
 
-![Noty in use: the deck fans out from the screen edge, a checklist is pulled open, two tasks are ticked off, and the note is dismissed by clicking away](demo.gif)
+![Noty 使用效果：便签卡组从屏幕边缘展开，打开一个待办清单，勾选两个任务，然后点击其他位置关闭便签](demo.gif)
 
-| At rest | Fanned | A note pulled open |
-|---|---|---|
-| ![The deck at rest: a thin pill of coloured dashes on the screen edge](screenshots/rest.png) | ![The deck fanned into shingled paper tabs](screenshots/fan.png) | ![A note pulled clear of the deck, carrying its tab down the left side](screenshots/open.png) |
+| 收起                                                      | 展开                                                 | 打开的便签                                                                                               |
+| --------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| ![收起状态：屏幕边缘的一条彩色短线](screenshots/rest.png) | ![展开状态：交错叠放的便签标签](screenshots/fan.png) | ![打开的便签：标签沿左侧显示](screenshots/open.png) ![打开的便签：标签沿左侧显示](screenshots/right.png) |
 
-## Three states, one movement
+## 三种状态，一次移动
 
-| State | What you see | Trigger |
-|---|---|---|
-| **Rest** | A 12 pt pill on the screen edge — one coloured dash per note | idle |
-| **Fan** | Notes shingle down the edge 45 ms apart as vertical tabs, each keeping its colour and carrying its label turned on its side | pointer enters the pill |
-| **Expanded** | The note slides clear of the deck at full size, level with its own tab, which stays visible behind it | click a tab |
+| 状态     | 视觉效果                                                                    | 触发方式       |
+| -------- | --------------------------------------------------------------------------- | -------------- |
+| **收起** | 屏幕边缘显示一个 12 pt 的胶囊条，每张便签对应一条彩色短线                   | 空闲           |
+| **展开** | 便签以相隔 45 ms 的节奏沿边缘交错展开为竖直标签，保留各自颜色，标题旋转显示 | 鼠标进入胶囊条 |
+| **打开** | 便签以完整尺寸从卡组中滑出，与自己的标签对齐，标签仍显示在后方              | 点击标签       |
 
-The deck shows **five notes at a time** and puts the rest behind a `+N` tab, which
-opens the full list in a scrolling deck. A `+` button sits in the bottom corner
-while the deck is open.
+卡组一次最多显示 **五张便签**，其余便签收纳在 `+N` 标签后面。点击该标签
+即可在可滚动的卡组中查看完整列表。卡组展开时，底部角落还会显示一个 `+` 按钮。
 
-Tabs **shingle**: each one is full height but sits only a strip below the one
-before, lapping over it like a roof tile. That is what keeps the deck to roughly
-half the screen height instead of running its full length. The strip is sized to
-the longest title currently on the deck, so labels read in full and ellipsise
-cleanly rather than being clipped mid-word.
+标签采用 **交错叠放**：每个标签保持完整高度，但只露出前一个标签下方的一小段，
+像屋瓦一样层层覆盖。这样卡组的总高度约为屏幕的一半，而不会占满整个屏幕。
+露出的部分会根据当前卡组中最长的标题调整宽度，标题会完整显示或优雅省略，
+不会在单词中间被截断。
 
-The fan is only 56 pt wide, so the deck covers almost none of what is behind it.
+展开后的卡组宽度只有 56 pt，几乎不会遮挡后面的内容。
 
-### Two deck styles
+### 两种卡组样式
 
-Right-click the pill → **Deck style**:
+右键点击胶囊条 → **卡组样式**：
 
-| | |
-|---|---|
-| **Labelled tabs** | Full-size tabs carrying their titles — the default |
-| **Colour chips** | Colour only, no labels; the deck shrinks to a row of chips |
+|                |                                            |
+| -------------- | ------------------------------------------ |
+| **带标题标签** | 显示完整尺寸并携带标题的标签（默认）       |
+| **纯色圆角块** | 只显示颜色、不显示标题，卡组收缩为一行色块 |
 
-The open note carries its own tab along as a left gutter, separated by a dashed
-rule, so it reads as growing out of the deck rather than floating beside it.
+打开的便签会将自己的标签作为左侧边栏一并带出，中间用虚线分隔，
+看起来像是从卡组中长出来，而不是悬浮在旁边。
 
-## Shortcuts
+## 快捷键
 
-All of these are listed in Settings (`⌘,`), and the first four can be rebound
-there. Global ones are registered through the Carbon hotkey API, so **no
-Accessibility permission is required**:
+所有快捷键都列在设置（`⌘,`）中，前四个可以在那里重新绑定。全局快捷键通过
+Carbon hotkey API 注册，因此**不需要辅助功能权限**：
 
-| | |
-|---|---|
-| `⌥⌘N` | new note (opens it straight away) |
-| `⌥⌘A` | All Notes |
-| `⌥⌘L` | the Archive window |
+|       |                      |
+| ----- | -------------------- |
+| `⌥⌘N` | 新建便签（直接打开） |
+| `⌥⌘A` | 全部便签             |
+| `⌥⌘L` | 归档窗口             |
 
-Inside a note:
+便签内部：
 
-| | |
-|---|---|
-| `Esc` | close the note, back to the tabs (or dismiss the find bar) |
-| `⌘F` | find in note |
-| `⌘.` | cycle its colour |
-| `⌘T` | turn the current line into a task, or strip the checkbox off |
-| `⌘⌫` | delete, with ten seconds to undo |
-| `⇧⌘A` | archive the note you are looking at |
-| `⌘P` | pin the note so it stays open |
-| `⌃+` / `⌃-` | bigger / smaller note text |
+|             |                                      |
+| ----------- | ------------------------------------ |
+| `Esc`       | 关闭便签，返回标签页（或关闭查找栏） |
+| `⌘F`        | 在便签中查找                         |
+| `⌘.`        | 切换便签颜色                         |
+| `⌘T`        | 将当前行设为任务，或移除复选框       |
+| `⌘⌫`        | 删除，十秒内可以撤销                 |
+| `⇧⌘A`       | 归档当前便签                         |
+| `⌘P`        | 固定便签，使其保持打开               |
+| `⌃+` / `⌃-` | 增大 / 减小便签文字                  |
 
-Standard editing (`⌘C` / `⌘V` / `⌘Z` / `⌘A`) works everywhere — the app builds a
-main menu at launch purely so those key equivalents dispatch, even though an
-accessory app draws no menu bar.
+标准编辑快捷键（`⌘C` / `⌘V` / `⌘Z` / `⌘A`）在任何位置都可用。应用启动时
+会创建主菜单，专门用于分发这些快捷键；虽然 accessory 应用本身不显示菜单栏。
 
-## Checkbox tasks
+## 待办任务
 
-Any line can be a task. `⌘T` (or the checklist button in a note's header) puts a
-checkbox on the current line; **click the box to tick it off** and the line is
-struck through and dimmed. Return carries the list on to the next task, and
-Return on an empty task ends the list.
+任何一行都可以设为任务。`⌘T`（或便签标题栏中的清单按钮）会在当前行添加复选框；
+**点击复选框即可完成任务**，该行会显示删除线并变暗。按回车会在下一行继续任务列表，
+在空任务上按回车则结束列表。
 
-Tasks live inline in the note body as `☐` / `☑` prefixes, so a note stays plain
-text. Markdown export writes them as standard `- [ ]` / `- [x]` task syntax and
-import reads that back. All Notes shows a `done/total` count per note.
+任务以 `☐` / `☑` 前缀直接保存在便签正文中，因此正文仍是纯文本。导出 Markdown
+时会转换为标准的 `- [ ]` / `- [x]` 任务语法，导入时也会转换回来。全部便签列表
+会显示每张便签的 `已完成/总数`。
 
-## Everything else
+## 其他功能
 
-- **Archived, not deleted.** Archiving pulls a note out of the deck but keeps it
-  in All Notes → Archive, restorable at any time.
-- **All Notes** (`⌥⌘A`) — one window, search across every note body and title,
-  with an editable detail pane.
-- **Multi-display** — each screen gets its own dormant pill on its right edge.
-  The deck opens on whichever screen the pointer enters and the others stay shut.
-  Displays are tracked by `CGDirectDisplayID`, so hot-plugging rebuilds the decks.
-- **Over full-screen apps** — right-click the pill → *Show over full-screen apps*.
-  This raises the panel to `.statusBar` level; `.floating` alone does not draw
-  over a full-screen space.
-- **Autosave** 250 ms after you stop typing, and again on close.
-- **Settings** (`⌘,`, or right-click the pill). Rebind the shortcuts, pick the
-  note face and size, set how far from the edge the pointer wakes the deck,
-  and switch Markdown styling on or off. Everything applies immediately.
-- **Markdown as you type.** `# headings`, `**bold**`, `*italic*`, `` `code` ``,
-  `~~struck~~`, `> quotes` and `- bullets` are styled in place. The markers are
-  dimmed rather than hidden, so the stored text is exactly what you typed and
-  exports unchanged.
-- **Drag to reorder.** Press and hold a tab, then drag it up or down the deck.
-- **Pin a note to keep it open.** The pin in a note's header (or `⌘P`) stops it
-  being dismissed by anything you did not aim at it — clicking away in another
-  app, or leaving it idle. Esc and Close still close it. Pinned tabs carry a dot,
-  and the pin is remembered.
-- **Closing a note steps back to the deck.** Esc, Close, archiving or deleting
-  leaves the tabs where they were; only moving away from the edge puts the deck
-  back to sleep. Clicking in another app dismisses the whole thing.
-- **Tidies itself away.** A fan left untouched collapses after 4 seconds; an open
-  note after a minute idle.
-- **Export** — Markdown (one `.md` per note), plain text (one `.txt` per note),
-  a single document, or a `.stickies` archive that preserves colours, archived
-  state and dates. **Import** reads `.stickies` back, and will also take loose
-  `.md` / `.txt` files.
-- Right-click the pill for the full menu: new note, windows, edge side, launch at
-  login, export, import, quit.
+- **归档而非删除。** 归档会将便签从卡组中移除，但仍保留在“全部便签 → 归档”中，
+  随时可以恢复。
+- **全部便签**（`⌥⌘A`）——单独的窗口，可搜索所有便签的标题和正文，并提供可编辑的详情面板。
+- **多显示器**——每个屏幕右侧都有一个休眠状态的胶囊条。鼠标进入哪个屏幕，
+  卡组就在哪个屏幕展开，其他卡组保持关闭。显示器通过 `CGDirectDisplayID` 跟踪，
+  热插拔后会自动重建卡组。
+- **覆盖全屏应用**——右键点击胶囊条 → _在全屏应用上显示_。这会将面板提升到
+  `.statusBar` 层级；仅使用 `.floating` 无法显示在全屏空间上方。
+- **自动保存**——停止输入 250 ms 后自动保存，关闭便签时还会再次保存。
+- **设置**（`⌘,` 或右键点击胶囊条）——重新绑定快捷键，选择便签字体、字号和内容行高，
+  设置鼠标距离屏幕边缘多远时唤醒卡组，并开关 Markdown 样式。所有设置立即生效。
+- **边输入边显示 Markdown 样式。** `# 标题`、`**粗体**`、`*斜体*`、`` `代码` ``、
+  `~~删除线~~`、`> 引用` 和 `- 列表` 会直接应用样式。标记会变暗而不是隐藏，
+  因此保存和导出的文本与输入内容完全一致。
+- **拖拽排序。** 按住标签并上下拖动即可调整便签顺序。
+- **固定便签。** 点击标题栏中的图钉（或按 `⌘P`）后，便签不会因为非目标操作而关闭，
+  例如切换到其他应用或长时间无操作。`Esc` 和“关闭”仍然可以关闭它。固定的标签
+  会显示一个圆点，固定状态也会被记住。
+- **关闭便签后返回卡组。** 按 `Esc`、点击“关闭”、归档或删除后，标签会保持原位；
+  只有离开屏幕边缘，卡组才会重新收起。点击其他应用会关闭整个卡组。
+- **自动收起。** 展开后的卡组闲置 4 秒后收起；打开的便签闲置 1 分钟后关闭。
+- **导出**——支持 Markdown（每张便签一个 `.md`）、纯文本（每张便签一个 `.txt`）、
+  单个文档，或保留颜色、归档状态和日期的 `.stickies` 归档文件。**导入**支持
+  `.stickies`，也支持直接导入 `.md` / `.txt` 文件。
+- 右键点击胶囊条可打开完整菜单：新建便签、窗口、边缘位置、登录时启动、导出、导入和退出。
 
-## Your notes stay on your Mac
+## 你的便签留在 Mac 本地
 
-- Local SQLite database in `~/Library/Application Support/Noty/`.
-- **Note bodies are encrypted with AES-GCM** (CryptoKit, 256-bit). Titles,
-  colours and timestamps stay in plaintext so lists render without unsealing
-  every row.
-- No account, no server, no analytics, no telemetry, no tracking SDKs.
-- **One network request, ever:** Sparkle fetches the appcast to see whether a
-  newer version exists. Nothing about your notes is sent — it is a plain GET of
-  a public XML file. Turn it off with *Check automatically* in the pill's menu,
-  and it never fires again.
-- No Accessibility permission, no Screen Recording, no system permissions.
+- 本地 SQLite 数据库位于 `~/Library/Application Support/Noty/`。
+- **便签正文使用 AES-GCM 加密**（CryptoKit，256 位）。标题、颜色和时间戳保持明文，
+  这样列表无需解密每一行就能正常渲染。
+- 不需要账号、服务器、分析服务、遥测或跟踪 SDK。
+- **应用只会发起一次网络请求：** Sparkle 获取 appcast，检查是否有新版本。
+  便签内容不会被发送——这只是对公开 XML 文件的普通 GET 请求。可以在胶囊条菜单中
+  关闭“自动检查”，关闭后将不会再发起该请求。
+- 不需要辅助功能权限、屏幕录制权限或其他系统权限。
 
-Verify it yourself:
+你可以自行验证：
 
 ```sh
 sqlite3 ~/Library/Application\ Support/Noty/notes.db "SELECT hex(substr(body,1,24)) FROM notes;"
 strings ~/Library/Application\ Support/Noty/notes.db | grep "some text from a note body"   # finds nothing
 ```
 
-## Build
+## 构建
 
-Requires the Swift toolchain from Command Line Tools (**Xcode is not needed**)
-and macOS 15+.
+需要 Command Line Tools 中的 Swift 工具链（**不需要 Xcode**）以及 macOS 15 或更高版本。
 
 ```sh
-./scripts/fetch-sparkle.sh   # once — pulls the Sparkle binary framework
-./build.sh                   # release build → build/Noty.app
-./build.sh debug             # fast, unoptimised
-./build.sh release run       # build, then relaunch
+./scripts/fetch-sparkle.sh   # 首次执行：下载 Sparkle 二进制框架
+./build.sh                   # Release 构建 → build/Noty.app
+./build.sh debug             # 快速、未优化的 Debug 构建
+./build.sh release run       # 构建后重新启动应用
 open build/Noty.app
 ```
 
-`build.sh` drives `swiftc` directly over `Sources/*.swift`, assembles the
-`.app` bundle around `Info.plist`, embeds Sparkle, and signs it.
+`build.sh` 直接调用 `swiftc` 编译 `Sources/*.swift`，根据 `Info.plist` 组装
+`.app` 包，嵌入 Sparkle 并完成签名。
 
-Sparkle is optional. Without `Sparkle/Sparkle.framework` the app still builds —
-`Updater.swift` compiles to a stub and the update menu says so.
+Sparkle 是可选依赖。没有 `Sparkle/Sparkle.framework` 时应用仍然可以构建，
+`Updater.swift` 会编译为占位实现，更新菜单会相应提示。
 
-### Releasing
+### 发布
 
 ```sh
 git tag v1.0.1 && git push origin v1.0.1
 ```
 
-That fires `.github/workflows/release.yml`, which builds the app, packages a
-DMG, signs it with the EdDSA key, writes `appcast.xml`, publishes a GitHub
-Release and commits the appcast so installed copies can see the update.
+这会触发 `.github/workflows/release.yml`：构建应用、打包 DMG、使用 EdDSA 密钥签名、
+写入 `appcast.xml`、发布 GitHub Release，并提交 appcast，让已安装的应用能够发现更新。
 
-It needs one repository secret, **`SPARKLE_PRIVATE_KEY`** — the contents of the
-key `scripts/fetch-sparkle.sh`'s toolchain generated. The matching public key is
-already in `Info.plist` as `SUPublicEDKey`; an update signed by any other key is
-refused by the installed app.
+它需要一个仓库密钥 **`SPARKLE_PRIVATE_KEY`**，即由
+`scripts/fetch-sparkle.sh` 工具链生成的私钥内容。匹配的公钥已经写入 `Info.plist`
+中的 `SUPublicEDKey`；使用其他密钥签名的更新会被已安装的应用拒绝。
 
-To build a DMG by hand:
+手动构建 DMG：
 
 ```sh
 ./build.sh release && ./scripts/make-dmg.sh 1.0.1
 ```
 
-**Signing note.** Sparkle ships signed by its own team, and dyld refuses to load
-a framework whose Team ID differs from the process — so `build.sh` re-signs the
-framework (innermost bundle first) with the same identity as the app. Set
-`CODESIGN_IDENTITY` to use a Developer ID instead of an ad-hoc signature.
+**签名说明。** Sparkle 使用其自身团队签名发布，dyld 会拒绝加载 Team ID 与进程
+不同的框架。因此 `build.sh` 会从最内层的 bundle 开始，使用与应用相同的身份重新签名
+框架。设置 `CODESIGN_IDENTITY` 可以使用 Developer ID，而不是 ad-hoc 签名。
 
-## Layout
+## 目录结构
 
 ```
 Sources/
-  Main.swift            @main entry point; NSApplication, accessory policy
-  AppDelegate.swift     wiring, actions, main menu
-  Core.swift            Paths, AES-GCM Crypto, colour palette, Note model
-  Store.swift           SQLite (C API) — schema, load, upsert, delete
-  NoteStore.swift       observable model; the single source of truth
-  Settings.swift        UserDefaults prefs + launch-at-login
-  HotKeys.swift         Carbon global shortcuts (no permissions)
-  DeckPanel.swift       geometry, NSPanel subclass, tracking container
-  DeckController.swift  one deck per display + the state machine
-  DeckViews.swift       pill, fan, tabs, the 45 ms stagger
-  NoteEditor.swift      NSTextView bridge, find, 250 ms autosave
-  LibraryWindow.swift   All Notes / Archive
-  ExportImport.swift    md / txt / single file / .stickies
-  UndoToast.swift       the ten-second undo after a delete
+  Main.swift            @main 入口；NSApplication、accessory 策略
+  AppDelegate.swift     应用连接、操作和主菜单
+  Core.swift            路径、AES-GCM 加密、颜色调色板和 Note 模型
+  Store.swift           SQLite（C API）——建表、加载、写入、删除
+  NoteStore.swift       可观察模型；统一数据源
+  Settings.swift        UserDefaults 设置和登录时启动
+  HotKeys.swift         Carbon 全局快捷键（无需权限）
+  DeckPanel.swift       几何布局、NSPanel 子类和跟踪容器
+  DeckController.swift  每个显示器一个卡组，以及状态机
+  DeckViews.swift       胶囊条、扇出、标签和 45 ms 交错动画
+  NoteEditor.swift      NSTextView 桥接、查找和 250 ms 自动保存
+  LibraryWindow.swift   全部便签 / 归档
+  ExportImport.swift    md / txt / 单文件 / .stickies
+  UndoToast.swift       删除后的十秒撤销提示
 ```
 
-Four details worth knowing if you touch the deck:
+如果要修改卡组功能，以下四点值得注意：
 
-- A borderless `.nonactivatingPanel` returns `false` from `canBecomeKey`, so the
-  expanded note silently refuses keystrokes unless it is overridden.
-- Views default `acceptsFirstMouse` to `false`, so the first click on a tab is
-  otherwise eaten to activate the panel instead of opening the note — which is
-  the *normal* case, since you are always in another app when you reach for the deck.
-- The shingle relies on **ZStack declaration order**, not `zIndex`. Adding an
-  explicit `zIndex` per tab reordered neighbouring tabs and broke the lap.
-- `rotationEffect` is a render transform, not a layout one: a rotated label still
-  measures at its unrotated width, so anything sized around one has to be
-  constrained and clipped separately or it bleeds across the note.
+- 无边框的 `.nonactivatingPanel` 默认从 `canBecomeKey` 返回 `false`，因此必须重写它，
+  否则展开的便签无法接收键盘输入。
+- 视图的 `acceptsFirstMouse` 默认是 `false`。如果不重写，点击标签时第一次点击只会
+  激活面板，而不会打开便签；但用户从其他应用触碰卡组时，第一次点击正是常见情况。
+- 交错叠放依赖 **ZStack 的声明顺序**，而不是 `zIndex`。为每个标签设置显式 `zIndex`
+  会改变相邻标签的绘制顺序，破坏叠放效果。
+- `rotationEffect` 是绘制变换而不是布局变换：旋转后的标签仍按未旋转宽度测量，
+  因此围绕它布局的内容必须单独约束和裁剪，否则会溢出到便签上。
 
-Set `NOTY_DEBUG_DECK=1` in the environment to trace deck state transitions on stderr.
+设置环境变量 `NOTY_DEBUG_DECK=1`，即可将卡组状态变化追踪信息输出到 stderr。
 
-## Differences from the original
+## 与原版的区别
 
-- **Not sandboxed**, so data lives in `~/Library/Application Support/Noty/`
-  rather than `~/Library/Containers/`. Sandboxing needs a provisioning profile,
-  which needs Xcode and a developer account.
-- The AES key is a `0600` file beside the database. The Keychain is the right
-  home for it in a distributed build, but an ad-hoc signature changes on every
-  rebuild, which makes the Keychain re-prompt or deny each time.
-- `.stickies` here is Noty's own JSON archive format — the original's is opaque,
-  so the two are not interchangeable. This one round-trips its own exports with
-  full fidelity.
-- No licensing, trial, or update machinery.
-- Ad-hoc signed and not notarised, so Gatekeeper will want a right-click → Open
-  the first time if the app is moved off this machine.
+- **未启用沙盒**，因此数据位于 `~/Library/Application Support/Noty/`，而不是
+  `~/Library/Containers/`。启用沙盒需要 provisioning profile，而这又需要 Xcode 和开发者账号。
+- AES 密钥是数据库旁边的 `0600` 文件。在正式分发版本中，Keychain 是更合适的存储位置；
+  但 ad-hoc 签名每次重新构建都会变化，使用 Keychain 会导致应用每次重新请求授权或被拒绝。
+- 这里的 `.stickies` 是 Noty 自己的 JSON 归档格式；原版格式是不透明的，因此两者不能互换。
+  Noty 可以完整地导入自己导出的归档。
+- 没有许可证、试用或更新机制。
+- 使用 ad-hoc 签名且未经公证。如果将应用移到其他位置，Gatekeeper 首次打开时可能要求
+  右键点击 →“打开”。
 
-## Licence
+## 许可证
 
-MIT — see [LICENSE](LICENSE). Do what you like with it; keep the copyright
-notice.
+MIT——详见 [LICENSE](LICENSE)。你可以自由使用，但请保留版权声明。
 
-Noty bundles [Sparkle](https://github.com/sparkle-project/Sparkle) (also MIT)
-for updates. Its notice is reproduced in
-[licenses/THIRD-PARTY.txt](licenses/THIRD-PARTY.txt) and copied into
-`Noty.app/Contents/Resources/`, so it travels with every DMG as its licence
-requires.
+Noty 使用 [Sparkle](https://github.com/sparkle-project/Sparkle)（同样采用 MIT 许可证）
+处理更新。其声明已写入 [licenses/THIRD-PARTY.txt](licenses/THIRD-PARTY.txt)，
+并复制到 `Noty.app/Contents/Resources/`，因此会按照许可证要求随每个 DMG 一起分发。
