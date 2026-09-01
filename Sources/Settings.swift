@@ -35,6 +35,22 @@ enum Settings {
                     forKey: "noteFontSize") }
     }
 
+    /// Line height inside a note, expressed as a multiple of the font's natural height.
+    static let lineHeights: [(name: String, multiple: Double)] = [
+        ("紧凑", 0.9), ("标准", 1.0), ("宽松", 1.25), ("很宽", 1.5)
+    ]
+
+    static let lineHeightRange: ClosedRange<Double> = 0.8...2.0
+
+    static var noteLineHeight: Double {
+        get {
+            let v = d.double(forKey: "noteLineHeight")
+            return lineHeightRange.contains(v) ? v : 1.0
+        }
+        set { d.set(min(max(newValue, lineHeightRange.lowerBound), lineHeightRange.upperBound),
+                    forKey: "noteLineHeight") }
+    }
+
     /// PostScript name of the face note bodies are set in; empty means the
     /// system font. Defaults to a hand, the way a sticky note actually looks.
     static var noteFontName: String {

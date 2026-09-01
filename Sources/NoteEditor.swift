@@ -129,6 +129,48 @@ final class TaskTextView: NSTextView {
         super.mouseDown(with: event)
     }
 
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let menu = NSMenu()
+        menu.autoenablesItems = true
+
+        menu.addItem(withTitle: "撤销", action: Selector(("undo:")), keyEquivalent: "")
+        menu.addItem(withTitle: "重做", action: Selector(("redo:")), keyEquivalent: "")
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "剪切", action: #selector(NSText.cut(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: "拷贝", action: #selector(NSText.copy(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: "粘贴", action: #selector(NSText.paste(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: "全选", action: #selector(NSText.selectAll(_:)), keyEquivalent: "")
+        menu.addItem(.separator())
+
+        let sizeItem = NSMenuItem(title: "文字大小", action: nil, keyEquivalent: "")
+        let sizeMenu = NSMenu()
+        for entry in Settings.fontSizes {
+            let item = NSMenuItem(title: entry.name, action: #selector(AppDelegate.setFontSize(_:)),
+                                  keyEquivalent: "")
+            item.representedObject = entry.size
+            item.state = abs(Settings.noteFontSize - entry.size) < 0.01 ? .on : .off
+            item.target = NSApp.delegate
+            sizeMenu.addItem(item)
+        }
+        sizeItem.submenu = sizeMenu
+        menu.addItem(sizeItem)
+
+        let lineHeightItem = NSMenuItem(title: "内容行高", action: nil, keyEquivalent: "")
+        let lineHeightMenu = NSMenu()
+        for entry in Settings.lineHeights {
+            let item = NSMenuItem(title: entry.name, action: #selector(AppDelegate.setLineHeight(_:)),
+                                  keyEquivalent: "")
+            item.representedObject = entry.multiple
+            item.state = abs(Settings.noteLineHeight - entry.multiple) < 0.01 ? .on : .off
+            item.target = NSApp.delegate
+            lineHeightMenu.addItem(item)
+        }
+        lineHeightItem.submenu = lineHeightMenu
+        menu.addItem(lineHeightItem)
+
+        return menu
+    }
+
     override func resetCursorRects() {
         super.resetCursorRects()
         guard let lm = layoutManager, let tc = textContainer else { return }
@@ -181,6 +223,7 @@ struct NoteTextView: NSViewRepresentable {
     let bridge: EditorBridge
     var autofocus: Bool
     var fontSize: CGFloat = 13.5
+    var lineHeight: CGFloat = 1.0
 
     static func bodyFont(_ size: CGFloat) -> NSFont { Ink.body(size) }
 
@@ -226,7 +269,7 @@ struct NoteTextView: NSViewRepresentable {
 
         scroll.documentView = tv
         bridge.textView = tv
-        Self.styleTasks(tv, ink: ink, size: fontSize)
+        Self.styleTasks(tv, ink: ink, size: fontSize, lineHeight: lineHeight)
         if autofocus {
             DispatchQueue.main.async { tv.window?.makeFirstResponder(tv) }
         }
@@ -241,14 +284,16 @@ struct NoteTextView: NSViewRepresentable {
         // then discards the composition and makes typed text appear to vanish.
         if !tv.hasMarkedText(), tv.string != text {
             tv.string = text
-            Self.styleTasks(tv, ink: ink, size: fontSize)
+            Self.styleTasks(tv, ink: ink, size: fontSize, lineHeight: lineHeight)
         }
         let want = Self.bodyFont(fontSize)
-        if tv.textColor != ink || tv.font != want {
+        let currentLineHeight = (tv.typingAttributes[.paragraphStyle] as? NSParagraphStyle)?.lineHeightMultiple ?? 0
+        if tv.textColor != ink || tv.font != want ||
+            abs(currentLineHeight - lineHeight) > 0.001 {
             tv.textColor = ink
             tv.insertionPointColor = ink
             tv.font = want
-            Self.styleTasks(tv, ink: ink, size: fontSize)
+            Self.styleTasks(tv, ink: ink, size: fontSize, lineHeight: lineHeight)
         }
         if bridge.textView !== tv { bridge.textView = tv }
     }
@@ -259,14 +304,16 @@ struct NoteTextView: NSViewRepresentable {
     /// `typingAttributes` has to be refreshed — otherwise the next character is
     /// inserted in the *previous* font and immediately rewritten, which reads as
     /// the text jumping under the cursor after a font or size change.
-    static func styleTasks(_ tv: NSTextView, ink: NSColor, size: CGFloat = 13.5) {
+    static func styleTasks(_ tv: NSTextView, ink: NSColor, size: CGFloat = 13.5,
+                           lineHeight: CGFloat = 1.0) {
         // TextKit mutations and selection restoration are not safe while the
         // input method is composing marked text. The next textDidChange after
         // the composition is committed will style the complete document.
         guard !tv.hasMarkedText() else { return }
 
         let font = bodyFont(size)
-        tv.typingAttributes = [.font: font, .foregroundColor: ink]
+        let paragraph = paragraphStyle(lineHeight)
+        tv.typingAttributes = [.font: font, .foregroundColor: ink, .paragraphStyle: paragraph]
 
         guard let storage = tv.textStorage else { return }
         let full = NSRange(location: 0, length: storage.length)
@@ -279,6 +326,7 @@ struct NoteTextView: NSViewRepresentable {
         storage.removeAttribute(.notyHidden, range: full)
         storage.addAttribute(.foregroundColor, value: ink, range: full)
         storage.addAttribute(.font, value: font, range: full)
+        storage.addAttribute(.paragraphStyle, value: paragraph, range: full)
 
         let ns = storage.string as NSString
         if Settings.markdownStyling {
@@ -304,6 +352,12 @@ struct NoteTextView: NSViewRepresentable {
         tv.setSelectedRange(NSRange(location: min(caret.location, end),
                                     length: min(caret.length, end - min(caret.location, end))))
         tv.window?.invalidateCursorRects(for: tv)
+    }
+
+    private static func paragraphStyle(_ lineHeight: CGFloat) -> NSParagraphStyle {
+        let style = NSMutableParagraphStyle()
+        style.lineHeightMultiple = lineHeight
+        return style.copy() as! NSParagraphStyle
     }
 
     /// Inline Markdown. The source stays plain text — markers are dimmed rather
@@ -403,12 +457,14 @@ struct NoteTextView: NSViewRepresentable {
             let line = ns.lineRange(for: NSRange(location: caret, length: 0))
             guard line.location != lastLine.location || line.length != lastLine.length else { return }
             lastLine = line
-            NoteTextView.styleTasks(tv, ink: parent.ink, size: parent.fontSize)
+            NoteTextView.styleTasks(tv, ink: parent.ink, size: parent.fontSize,
+                                    lineHeight: parent.lineHeight)
         }
 
         func textDidChange(_ notification: Notification) {
             guard let tv = notification.object as? NSTextView else { return }
-            NoteTextView.styleTasks(tv, ink: parent.ink, size: parent.fontSize)
+            NoteTextView.styleTasks(tv, ink: parent.ink, size: parent.fontSize,
+                                    lineHeight: parent.lineHeight)
             parent.text = tv.string
         }
 
@@ -486,7 +542,7 @@ struct NoteEditorView: View {
             if deck.findQuery != nil { findBar }
             NoteTextView(text: $text, ink: NSColor(pal.ink),
                          bridge: deck.bridge, autofocus: true,
-                         fontSize: deck.fontSize)
+                         fontSize: deck.fontSize, lineHeight: deck.lineHeight)
             footer
         }
     }

@@ -56,6 +56,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         deckManager.refreshAll()
     }
 
+    @objc func setLineHeight(_ sender: NSMenuItem) {
+        guard let multiple = sender.representedObject as? Double else { return }
+        Settings.noteLineHeight = multiple
+        deckManager.refreshAll()
+    }
+
     /// ⌃+ / ⌃- while a note is open.
     func stepFontSize(by delta: Double) {
         Settings.noteFontSize += delta

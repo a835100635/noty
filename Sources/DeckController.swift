@@ -41,6 +41,7 @@ final class DeckModel: ObservableObject {
     @Published var style: DeckStyle = Settings.deckStyle
     @Published var onLeftEdge: Bool = Settings.deckOnLeftEdge
     @Published var fontSize: Double = Settings.noteFontSize
+    @Published var lineHeight: Double = Settings.noteLineHeight
     @Published var markdown: Bool = Settings.markdownStyling
     /// Published by the controller the instant the panel is resized. Reading this
     /// instead of a GeometryReader matters: the reader reports the *previous* size
@@ -52,6 +53,7 @@ final class DeckModel: ObservableObject {
         style = Settings.deckStyle
         onLeftEdge = Settings.deckOnLeftEdge
         fontSize = Settings.noteFontSize
+        lineHeight = Settings.noteLineHeight
         markdown = Settings.markdownStyling
     }
 }
@@ -439,6 +441,18 @@ final class DeckController: NSObject {
         }
         textItem.submenu = textMenu
         menu.addItem(textItem)
+
+        let lineHeightItem = NSMenuItem(title: "内容行高", action: nil, keyEquivalent: "")
+        let lineHeightMenu = NSMenu()
+        for entry in Settings.lineHeights {
+            let it = NSMenuItem(title: entry.name, action: #selector(AppDelegate.setLineHeight(_:)),
+                                keyEquivalent: "")
+            it.representedObject = entry.multiple
+            it.state = abs(Settings.noteLineHeight - entry.multiple) < 0.01 ? .on : .off
+            lineHeightMenu.addItem(it)
+        }
+        lineHeightItem.submenu = lineHeightMenu
+        menu.addItem(lineHeightItem)
 
         let leftEdge = NSMenuItem(title: "将便签栏停靠到左侧",
                                   action: #selector(AppDelegate.toggleDeckEdge), keyEquivalent: "")

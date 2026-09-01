@@ -106,6 +106,7 @@ final class SettingsModel: ObservableObject {
 
     @Published var fontName: String     { didSet { Settings.noteFontName = fontName; apply() } }
     @Published var fontSize: Double     { didSet { Settings.noteFontSize = fontSize; apply() } }
+    @Published var lineHeight: Double  { didSet { Settings.noteLineHeight = lineHeight; apply() } }
     @Published var markdown: Bool       { didSet { Settings.markdownStyling = markdown; apply() } }
 
     @Published var scNewNote: Shortcut  { didSet { Settings.scNewNote = scNewNote; HotKeys.shared.reload() } }
@@ -132,6 +133,7 @@ final class SettingsModel: ObservableObject {
         launchAtLogin = Settings.launchAtLogin
         fontName = Settings.noteFontName
         fontSize = Settings.noteFontSize
+        lineHeight = Settings.noteLineHeight
         markdown = Settings.markdownStyling
         scNewNote = Settings.scNewNote
         scAllNotes = Settings.scAllNotes
@@ -264,6 +266,16 @@ struct SettingsView: View {
                                    in: Settings.fontRange.lowerBound...Settings.fontRange.upperBound,
                                    step: 0.5).frame(width: 210)
                             Text("\(model.fontSize, specifier: "%.1f") pt")
+                                .font(.system(size: 11).monospacedDigit())
+                                .foregroundStyle(.secondary).frame(width: 52, alignment: .leading)
+                        }
+                    }
+                    row("内容行高") {
+                        HStack(spacing: 10) {
+                            Slider(value: $model.lineHeight,
+                                   in: Settings.lineHeightRange.lowerBound...Settings.lineHeightRange.upperBound,
+                                   step: 0.05).frame(width: 210)
+                            Text("\(model.lineHeight, specifier: "%.2f") 倍")
                                 .font(.system(size: 11).monospacedDigit())
                                 .foregroundStyle(.secondary).frame(width: 52, alignment: .leading)
                         }
